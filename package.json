@@ -1,0 +1,24 @@
+{
+  "name": "aws-textract-parser",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/maximevct/aws-textract-parser.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/maximevct/aws-textract-parser/issues"
+  },
+  "homepage": "https://github.com/maximevct/aws-textract-parser#readme",
+  "dependencies": {
+    "@aws-sdk/client-textract": "^3.121.0",
+    "@aws-sdk/credential-providers": "^3.121.0"
+  }
+}
