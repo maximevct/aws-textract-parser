@@ -1,4 +1,5 @@
 const { AnalyzeDocumentCommand, TextractClient } = require('@aws-sdk/client-textract')
+const { TextractDocument } = require('amazon-textract-response-parser')
 const { fromIni } = require("@aws-sdk/credential-providers");
 const fs = require('node:fs/promises')
 
@@ -7,29 +8,30 @@ const textractClient = new TextractClient({
   credentials: fromIni({ profile: 'test-pretto-extract' })
 })
 
-const getChildrens = (relationShips, all) => {
-  return relationShips
-    ? relationShips.reduce((acc, curr) => 
-      [...acc, ...curr.Ids.map(id => all.find(b => b.Id === id))]
-    , [])
-    : []
-}
-
 const displayBlockInfo = async (response) => {
-  const tables = response.Blocks.filter(b => b.BlockType === 'TABLE')
-  tables.map(table => {
-    const headers = getChildrens(table.Relationships, response.Blocks)
-      .filter(b => b.EntityTypes && b.EntityTypes.indexOf('COLUMN_HEADER') >= 0)
-      .map(b => ({
-        value: getChildrens(b.Relationships, response.Blocks)
-                .reduce((acc, curr) => curr.Text ? `${acc} ${curr.Text}` : acc, '')
-                .trim(),
-        position: { col: b.ColumnIndex, row: b.RowIndex }
-      }))
-      .filter(b => b.value.length)
-    console.log(headers)
-  })
-  // console.log(tables)
+  const doc = new TextractDocument(response)
+  const statements = doc.listPages().reduce((s, p) =>
+    [...s, ...p.listTables().reduce((tables, table) =>
+      [...tables, table.listRows().slice(1).map(row =>
+        row.listCells()
+          .reduce((o, c) => (
+            {...o,
+              [table.cellAt(1, c.columnIndex).text.trim()]: c.text.trim()
+            }
+          ), {})
+        )
+      ], [])
+    ], [])
+
+  console.log(statements[0])
+
+
+  // Iterate over rows/cells:
+  // for (const row of table.iterRows()) {
+  //   for (const cell of row.iterCells()) {
+  //     console.log(cell.text);
+  //   }
+  // }
 }
 
 const analyze_document_text = async (av) => {
