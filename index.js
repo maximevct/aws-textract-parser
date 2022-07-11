@@ -1,7 +1,9 @@
 const { AnalyzeDocumentCommand, TextractClient } = require('@aws-sdk/client-textract')
 const { TextractDocument } = require('amazon-textract-response-parser')
-const { fromIni } = require("@aws-sdk/credential-providers");
+const { fromIni } = require("@aws-sdk/credential-providers")
 const fs = require('node:fs/promises')
+const path = require('node:path')
+const { convertPdfToImage } = require('./image')
 
 const textractClient = new TextractClient({
   region: 'eu-west-3',
@@ -23,26 +25,17 @@ const displayBlockInfo = async (response) => {
       ], [])
     ], [])
 
-  console.log(statements[0])
-
-
-  // Iterate over rows/cells:
-  // for (const row of table.iterRows()) {
-  //   for (const cell of row.iterCells()) {
-  //     console.log(cell.text);
-  //   }
-  // }
+  statements.map(s => console.table(s))
 }
 
 const analyze_document_text = async (av) => {
   try {
-    const document = await fs.readFile(av[0], 'utf-8')
+    const filename = path.extname(av[0]) === '.pdf'
+      ? await convertPdfToImage(av[0], 'document.jpg')
+      : av[0]
+    const document = await fs.readFile(filename)
     const analyzeDoc = new AnalyzeDocumentCommand({
-      // Document: { Bytes: Buffer.from(document) },
-      Document: { S3Object: {
-        Bucket: 'test-pretto-docs',
-        Name: 'Allianz-1.png'
-      }},
+      Document: { Bytes: Buffer.from(document) },
       FeatureTypes: ['TABLES']
     })
     const response = await textractClient.send(analyzeDoc)
@@ -52,7 +45,4 @@ const analyze_document_text = async (av) => {
   }
 }
 
-// analyze_document_text(process.argv.slice(2))
-;(async () => {
-  displayBlockInfo(require(`./${process.argv[2]}`))
-})()
+analyze_document_text(process.argv.slice(2))

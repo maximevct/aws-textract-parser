@@ -19,6 +19,8 @@
   "homepage": "https://github.com/maximevct/aws-textract-parser#readme",
   "dependencies": {
     "@aws-sdk/client-textract": "^3.121.0",
-    "@aws-sdk/credential-providers": "^3.121.0"
+    "@aws-sdk/credential-providers": "^3.121.0",
+    "amazon-textract-response-parser": "^0.2.0",
+    "gm": "^1.23.1"
   }
 }
